@@ -1,0 +1,28 @@
+Excellent job on UzBozor so far! Now let's upgrade the navigation and add a "Favorites" (Sevimlilar) feature to make it look and feel like a premium mobile-first marketplace.
+
+Please implement the following changes based on the existing structure:
+
+1. **Add a Bottom Navigation Bar (Modern Mobile Menu):**
+   - Create a sticky/fixed bottom navigation bar that stays visible at the bottom of the screen on mobile devices.
+   - It must contain 4 clear, beautifully styled tabs with icons:
+     * **Bosh sahifa** (Home icon) - switches to the main catalog/store view.
+     * **Katalog** (Search/Grid icon) - opens the category view.
+     * **Sevimlilar** (Heart icon) - opens the new Favorites screen.
+     * **Savat** (Shopping Cart icon) - opens the full Cart screen.
+   - Add a subtle badge/counter on the "Savat" icon in the bottom menu (similar to the one currently in the top header) showing the number of items.
+
+2. **Implement the "Sevimlilar" (Favorites) System:**
+   - In every product card (on the main grid, as seen in photo_2026-05-28 04.13.05.jpeg), add a small, elegant heart icon layer in the top-right corner of the product image.
+   - By default, the heart should be an outline (gray or empty).
+   - When a user clicks the heart:
+     * It must immediately turn solid red (active state).
+     * The product must be added to a global "Sevimlilar" state/list.
+     * If clicked again, it turns gray and is removed from the list.
+
+3. **Create the New Screens:**
+   - **Sevimlilar Screen:** When this tab is clicked in the bottom menu, display a beautiful grid of only the products that the user has "hearted". If empty, show a stylish placeholder: "Sevimlilar roʻyxati boʻsh 💔".
+   - **Savat Screen:** Make the cart dynamic. When clicking the "Savat" tab at the bottom, render a full-page view of the cart items, summaries, and the checkout button ("Buyurtmani rasmiylashtirish"), transferring it from just being a top-corner icon.
+
+**Design & Code Details:**
+- Keep the current clean aesthetics (blue/purple accents like the 'Barchasi' button in photo_2026-05-28 04.13.05.jpeg).
+- Ensure state management works seamlessly so that liking a product on the Home page instantly populates it inside the "Sevimlilar" tab without requiring a page reload.

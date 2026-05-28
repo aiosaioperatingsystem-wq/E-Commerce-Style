@@ -10,7 +10,7 @@ export function Cart() {
   const { items, updateQuantity, removeFromCart, totalPrice } = useCart();
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background pb-20">
       <Header />
       
       <main className="flex-1 py-8">
