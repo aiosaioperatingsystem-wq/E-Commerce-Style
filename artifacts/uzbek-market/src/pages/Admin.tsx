@@ -6,27 +6,40 @@ import {
   useListOrders,
   useCreateProduct,
   useDeleteProduct,
+  useUpdateProduct,
   getListProductsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Trash2, Plus, Package, ShoppingBag, ArrowLeft, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Trash2, Plus, Package, ShoppingBag, ArrowLeft, Loader2, ChevronDown, ChevronUp, Pencil, X, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const CATEGORIES = ["Kiyim-kechak", "Elektronika", "Go'zallik", "Uy jihozlari", "Sport", "Avtomobil"];
 
 type OrderItem = { id: string; name: string; price: number; quantity: number; image: string };
 
+type EditForm = {
+  name: string;
+  category: string;
+  price: string;
+  imageUrl: string;
+  description: string;
+};
+
 export function Admin() {
   const [activeTab, setActiveTab] = useState<"orders" | "products">("orders");
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<EditForm>({ name: "", category: "", price: "", imageUrl: "", description: "" });
+  const [editError, setEditError] = useState("");
 
   const queryClient = useQueryClient();
   const { data: products = [], isLoading: productsLoading } = useListProducts();
   const { data: orders = [], isLoading: ordersLoading } = useListOrders();
   const createProduct = useCreateProduct();
   const deleteProduct = useDeleteProduct();
+  const updateProduct = useUpdateProduct();
 
   const invalidateProducts = () =>
     queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
@@ -69,9 +82,47 @@ export function Admin() {
     }
   };
 
+  const startEdit = (product: { id: number; name: string; category: string; price: number; imageUrl: string; description: string }) => {
+    setEditingId(product.id);
+    setEditForm({
+      name: product.name,
+      category: product.category,
+      price: String(product.price),
+      imageUrl: product.imageUrl,
+      description: product.description,
+    });
+    setEditError("");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditError("");
+  };
+
+  const handleSaveEdit = async (id: number) => {
+    setEditError("");
+    const name = editForm.name.trim();
+    const category = editForm.category;
+    const price = parseInt(editForm.price, 10);
+    const imageUrl = editForm.imageUrl.trim();
+    const description = editForm.description.trim();
+
+    if (!name || !category || isNaN(price) || !imageUrl) {
+      setEditError("Barcha majburiy maydonlarni to'ldiring.");
+      return;
+    }
+
+    try {
+      await updateProduct.mutateAsync({ id, data: { name, category, price, imageUrl, description } });
+      await invalidateProducts();
+      setEditingId(null);
+    } catch {
+      setEditError("Saqlashda xatolik yuz berdi.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-muted/20">
-      {/* Header */}
       <header className="sticky top-0 z-50 w-full bg-background border-b shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -90,7 +141,7 @@ export function Admin() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Stats row */}
+        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { label: "Jami buyurtmalar", value: orders.length, icon: ShoppingBag, color: "text-indigo-600", bg: "bg-indigo-50" },
@@ -98,7 +149,7 @@ export function Admin() {
             { label: "Bugungi buyurtmalar", value: orders.filter(o => new Date(o.createdAt).toDateString() === new Date().toDateString()).length, icon: ShoppingBag, color: "text-emerald-600", bg: "bg-emerald-50" },
             { label: "Umumiy savdo", value: formatPrice(orders.reduce((s, o) => s + o.totalPrice, 0)), icon: Package, color: "text-amber-600", bg: "bg-amber-50" },
           ].map((stat, i) => (
-            <div key={i} className="bg-card border rounded-2xl p-5 shadow-sm" data-testid={`stat-card-${i}`}>
+            <div key={i} className="bg-card border rounded-2xl p-5 shadow-sm">
               <div className={`w-10 h-10 rounded-xl ${stat.bg} ${stat.color} flex items-center justify-center mb-3`}>
                 <stat.icon className="w-5 h-5" />
               </div>
@@ -114,7 +165,6 @@ export function Admin() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              data-testid={`tab-${tab}`}
               className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all ${
                 activeTab === tab
                   ? "bg-primary text-primary-foreground shadow-sm"
@@ -141,7 +191,7 @@ export function Admin() {
             ) : (
               <div className="space-y-3">
                 {[...orders].reverse().map((order) => (
-                  <div key={order.id} className="bg-card border rounded-2xl shadow-sm overflow-hidden" data-testid={`order-row-${order.id}`}>
+                  <div key={order.id} className="bg-card border rounded-2xl shadow-sm overflow-hidden">
                     <button
                       className="w-full flex items-center justify-between p-5 text-left hover:bg-muted/30 transition-colors"
                       onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
@@ -228,20 +278,103 @@ export function Admin() {
               ) : (
                 <div className="space-y-3">
                   {products.map((product) => (
-                    <div key={product.id} className="flex items-center gap-4 bg-card border rounded-2xl p-4 shadow-sm" data-testid={`product-row-${product.id}`}>
-                      <img src={product.imageUrl} alt={product.name} className="w-16 h-16 rounded-xl object-cover bg-muted flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold truncate">{product.name}</p>
-                        <p className="text-sm text-muted-foreground">{product.category}</p>
-                        <p className="text-sm font-bold text-primary">{formatPrice(product.price)}</p>
-                      </div>
-                      <button
-                        onClick={() => handleDelete(product.id)}
-                        className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors flex-shrink-0"
-                        data-testid={`btn-delete-${product.id}`}
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                    <div key={product.id} className="bg-card border rounded-2xl shadow-sm overflow-hidden">
+                      {editingId === product.id ? (
+                        /* ── Inline edit form ── */
+                        <div className="p-4 space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="col-span-2">
+                              <label className="text-xs font-medium text-muted-foreground">Nomi *</label>
+                              <input
+                                value={editForm.name}
+                                onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
+                                className="w-full h-9 px-3 mt-1 rounded-lg border bg-background text-sm focus:ring-2 focus:ring-primary outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">Kategoriya *</label>
+                              <select
+                                value={editForm.category}
+                                onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}
+                                className="w-full h-9 px-3 mt-1 rounded-lg border bg-background text-sm focus:ring-2 focus:ring-primary outline-none"
+                              >
+                                <option value="">Tanlang...</option>
+                                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">Narxi (so'm) *</label>
+                              <input
+                                type="number"
+                                value={editForm.price}
+                                onChange={e => setEditForm(f => ({ ...f, price: e.target.value }))}
+                                className="w-full h-9 px-3 mt-1 rounded-lg border bg-background text-sm focus:ring-2 focus:ring-primary outline-none"
+                              />
+                            </div>
+                            <div className="col-span-2">
+                              <label className="text-xs font-medium text-muted-foreground">Rasm URL *</label>
+                              <input
+                                value={editForm.imageUrl}
+                                onChange={e => setEditForm(f => ({ ...f, imageUrl: e.target.value }))}
+                                className="w-full h-9 px-3 mt-1 rounded-lg border bg-background text-sm focus:ring-2 focus:ring-primary outline-none"
+                              />
+                            </div>
+                            <div className="col-span-2">
+                              <label className="text-xs font-medium text-muted-foreground">Tavsif</label>
+                              <input
+                                value={editForm.description}
+                                onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
+                                className="w-full h-9 px-3 mt-1 rounded-lg border bg-background text-sm focus:ring-2 focus:ring-primary outline-none"
+                              />
+                            </div>
+                          </div>
+                          {editError && (
+                            <p className="text-xs text-destructive bg-destructive/10 px-3 py-1.5 rounded-lg">{editError}</p>
+                          )}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleSaveEdit(product.id)}
+                              disabled={updateProduct.isPending}
+                              className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-60"
+                            >
+                              {updateProduct.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                              Saqlash
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              className="flex items-center gap-1.5 px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm font-semibold hover:bg-muted/80"
+                            >
+                              <X className="w-3.5 h-3.5" /> Bekor
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* ── Read view ── */
+                        <div className="flex items-center gap-4 p-4">
+                          <img src={product.imageUrl} alt={product.name} className="w-16 h-16 rounded-xl object-cover bg-muted flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold truncate">{product.name}</p>
+                            <p className="text-sm text-muted-foreground">{product.category}</p>
+                            <p className="text-sm font-bold text-primary">{formatPrice(product.price)}</p>
+                          </div>
+                          <div className="flex gap-1 flex-shrink-0">
+                            <button
+                              onClick={() => startEdit(product)}
+                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                              title="Tahrirlash"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(product.id)}
+                              className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                              title="O'chirish"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -263,7 +396,6 @@ export function Admin() {
                       required
                       placeholder="Masalan: iPhone 15 Pro"
                       className="w-full h-11 px-4 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none text-sm"
-                      data-testid="input-product-name"
                     />
                   </div>
 
@@ -273,7 +405,6 @@ export function Admin() {
                       name="category"
                       required
                       className="w-full h-11 px-4 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none text-sm"
-                      data-testid="select-product-category"
                     >
                       <option value="">Tanlang...</option>
                       {CATEGORIES.map(c => (
@@ -291,7 +422,6 @@ export function Admin() {
                       min="0"
                       placeholder="Masalan: 990000"
                       className="w-full h-11 px-4 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none text-sm"
-                      data-testid="input-product-price"
                     />
                   </div>
 
@@ -303,7 +433,6 @@ export function Admin() {
                       required
                       placeholder="https://images.unsplash.com/..."
                       className="w-full h-11 px-4 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none text-sm"
-                      data-testid="input-product-image"
                     />
                   </div>
 
@@ -314,7 +443,6 @@ export function Admin() {
                       rows={3}
                       placeholder="Mahsulot haqida qisqacha ma'lumot..."
                       className="w-full p-4 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none text-sm resize-none"
-                      data-testid="textarea-product-description"
                     />
                   </div>
 
@@ -331,7 +459,6 @@ export function Admin() {
                     type="submit"
                     disabled={createProduct.isPending}
                     className="w-full bg-primary text-primary-foreground py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-                    data-testid="btn-save-product"
                   >
                     {createProduct.isPending ? (
                       <><Loader2 className="w-4 h-4 animate-spin" /> Saqlanmoqda...</>

@@ -13,6 +13,7 @@ export function Checkout() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderId, setOrderId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const createOrder = useCreateOrder();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -24,6 +25,7 @@ export function Checkout() {
     const deliveryAddress = formData.get("address") as string;
 
     setIsSubmitting(true);
+    setSubmitError("");
     try {
       const result = await createOrder.mutateAsync({
         data: {
@@ -38,6 +40,7 @@ export function Checkout() {
       clearCart();
       setIsSuccess(true);
     } catch {
+      setSubmitError("Buyurtma berishda xatolik yuz berdi. Iltimos, qayta urinib ko'ring.");
       setIsSubmitting(false);
     }
   };
@@ -110,6 +113,10 @@ export function Checkout() {
                   <textarea required name="address" className="w-full p-4 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none min-h-[100px]" placeholder="Shahar, tuman, ko'cha, uy..."></textarea>
                 </div>
                 
+                {submitError && (
+                  <p className="text-sm text-destructive bg-destructive/10 px-4 py-3 rounded-xl">{submitError}</p>
+                )}
+
                 <button
                   type="submit"
                   disabled={isSubmitting}

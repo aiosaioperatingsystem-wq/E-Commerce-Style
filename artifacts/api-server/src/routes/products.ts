@@ -41,6 +41,44 @@ router.post("/products", async (req, res) => {
   }
 });
 
+router.patch("/products/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid id" });
+      return;
+    }
+    const { name, category, price, imageUrl, description, rating } = req.body as {
+      name?: string;
+      category?: string;
+      price?: number;
+      imageUrl?: string;
+      description?: string;
+      rating?: number;
+    };
+    const [updated] = await db
+      .update(productsTable)
+      .set({
+        ...(name !== undefined && { name }),
+        ...(category !== undefined && { category }),
+        ...(price !== undefined && { price }),
+        ...(imageUrl !== undefined && { imageUrl }),
+        ...(description !== undefined && { description }),
+        ...(rating !== undefined && { rating }),
+      })
+      .where(eq(productsTable.id, id))
+      .returning();
+    if (!updated) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+    res.json({ ...updated, createdAt: updated.createdAt.toISOString() });
+  } catch (err) {
+    req.log.error(err, "Failed to update product");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.delete("/products/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);

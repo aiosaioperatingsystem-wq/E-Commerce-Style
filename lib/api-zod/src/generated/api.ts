@@ -54,6 +54,41 @@ export const CreateProductBody = zod.object({
 
 
 /**
+ * @summary Update a product
+ */
+export const UpdateProductParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+export const updateProductBodyPriceMin = 0;
+
+
+
+
+export const UpdateProductBody = zod.object({
+  "name": zod.string().min(1),
+  "category": zod.string().min(1),
+  "price": zod.number().min(updateProductBodyPriceMin),
+  "imageUrl": zod.string().min(1),
+  "description": zod.string().optional(),
+  "rating": zod.number().optional()
+})
+
+export const UpdateProductResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.string(),
+  "price": zod.number(),
+  "imageUrl": zod.string(),
+  "description": zod.string(),
+  "rating": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
  * @summary Delete a product
  */
 export const DeleteProductParams = zod.object({
