@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
-import { products } from "@/data/products";
+import { products as staticProducts } from "@/data/products";
 import { Search } from "lucide-react";
+import { useListProducts } from "@workspace/api-client-react";
 
 const categories = ["Barchasi", "Kiyim-kechak", "Elektronika", "Go'zallik", "Uy jihozlari", "Sport"];
 
@@ -11,7 +12,12 @@ export function Catalog() {
   const [activeCategory, setActiveCategory] = useState("Barchasi");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredProducts = products.filter(p => {
+  const { data: apiProducts } = useListProducts();
+  const allProducts = apiProducts && apiProducts.length > 0
+    ? apiProducts.map(p => ({ ...p, id: String(p.id), image: p.imageUrl }))
+    : staticProducts;
+
+  const filteredProducts = allProducts.filter(p => {
     const matchesCategory = activeCategory === "Barchasi" || p.category === activeCategory;
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;

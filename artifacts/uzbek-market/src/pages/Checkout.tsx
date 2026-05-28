@@ -4,17 +4,42 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useCart } from "@/contexts/CartContext";
 import { formatPrice } from "@/data/products";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { CheckCircle2, ArrowRight } from "lucide-react";
+import { useCreateOrder } from "@workspace/api-client-react";
 
 export function Checkout() {
   const { items, totalPrice, clearCart } = useCart();
   const [isSuccess, setIsSuccess] = useState(false);
+  const [orderId, setOrderId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createOrder = useCreateOrder();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSuccess(true);
-    clearCart();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const customerName = formData.get("name") as string;
+    const customerPhone = formData.get("phone") as string;
+    const deliveryAddress = formData.get("address") as string;
+
+    setIsSubmitting(true);
+    try {
+      const result = await createOrder.mutateAsync({
+        data: {
+          customerName,
+          customerPhone,
+          deliveryAddress,
+          totalPrice,
+          items: items.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, image: i.image })),
+        },
+      });
+      setOrderId(result.id);
+      clearCart();
+      setIsSuccess(true);
+    } catch {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSuccess) {
@@ -36,7 +61,10 @@ export function Checkout() {
               <CheckCircle2 className="w-10 h-10" />
             </motion.div>
             <h1 className="text-2xl font-bold mb-2">Rahmat! Buyurtmangiz qabul qilindi ✨</h1>
-            <p className="text-muted-foreground mb-8">Tez orada operatorlarimiz siz bilan bog'lanadi. Buyurtma raqami: #{Math.floor(Math.random() * 10000)}</p>
+            <p className="text-muted-foreground mb-8">
+              Tez orada operatorlarimiz siz bilan bog'lanadi.{" "}
+              {orderId ? `Buyurtma raqami: #${orderId}` : ""}
+            </p>
             <Link href="/" className="w-full inline-flex justify-center items-center gap-2 bg-primary text-primary-foreground py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors">
               Bosh sahifaga qaytish <ArrowRight className="w-4 h-4" />
             </Link>
@@ -58,7 +86,7 @@ export function Checkout() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background pb-20">
       <Header />
       
       <main className="flex-1 py-8">
@@ -71,19 +99,24 @@ export function Checkout() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Ism va familiya</label>
-                  <input required type="text" className="w-full h-12 px-4 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none" placeholder="Masalan: Alisher Rustamov" />
+                  <input required name="name" type="text" className="w-full h-12 px-4 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none" placeholder="Masalan: Alisher Rustamov" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Telefon raqami</label>
-                  <input required type="tel" className="w-full h-12 px-4 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none" placeholder="+998 90 123 45 67" />
+                  <input required name="phone" type="tel" className="w-full h-12 px-4 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none" placeholder="+998 90 123 45 67" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Yetkazib berish manzili</label>
-                  <textarea required className="w-full p-4 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none min-h-[100px]" placeholder="Shahar, tuman, ko'cha, uy..."></textarea>
+                  <textarea required name="address" className="w-full p-4 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none min-h-[100px]" placeholder="Shahar, tuman, ko'cha, uy..."></textarea>
                 </div>
                 
-                <button type="submit" className="w-full bg-primary text-primary-foreground py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-colors mt-8" data-testid="btn-submit-order">
-                  Buyurtma berish
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-primary text-primary-foreground py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-colors mt-8 disabled:opacity-60"
+                  data-testid="btn-submit-order"
+                >
+                  {isSubmitting ? "Yuborilmoqda..." : "Buyurtma berish"}
                 </button>
               </form>
             </div>

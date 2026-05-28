@@ -1,0 +1,31 @@
+The marketplace looks amazing! Now, let's build the backend administration panel so we can manage real products and see incoming customer orders.
+
+Please implement an Admin Panel accessible via the `/admin` URL route.
+
+### Requirements for the `/admin` Page:
+
+1. **Two Main Sections (Tabs/Views):**
+   - **Buyurtmalar (Orders Management):** 
+     * A clean table or list showing all orders placed by users.
+     * Each order must display: Order ID, Customer Phone Number, Delivery Address/Method, Total Price, and the List of items purchased.
+   - **Mahsulotlar boshqaruvi (Product Management):**
+     * A structured table showing all currently active products with their current images, names, categories, and prices.
+     * An option to delete existing items.
+
+2. **"Yangi mahsulot qo'shish" Form (Add New Product Form):**
+   - Place a beautiful, clean input form inside the Product Management section to add new items dynamically to the database.
+   - The form fields must include:
+     * **Nomi (Name):** Text input.
+     * **Kategoriya (Category):** Dropdown select (e.g., Kiyim-kechak, Elektronika, Go'zallik, Uy jihozlari, Sport).
+     * **Narxi (Price):** Number input (stored as 'so'm').
+     * **Rasm URL (Image URL):** Text input for the product image URL.
+     * **Tavsif (Description):** Textarea for product details.
+   - Clicking the "Saqlash" (Save) button must instantly inject this new product into the database, making it immediately visible on the "Bosh sahifa" and "Katalog" screens without hardcoding.
+
+3. **Database Integration:**
+   - Ensure the app's existing checkout form (from the Cart/Profile page) actually saves orders into the database so they appear in real-time on this `/admin` dashboard.
+   - The products array/table should be dynamic so any items added via `/admin` show up across the whole app.
+
+**Design & Layout:**
+- Keep the dashboard clean, professional, and consistent with the current UzBozor color scheme (using Tailwind CSS).
+- You do not need complex password authentication for now—just make the route accessible directly at your-app-url/admin for easy management.

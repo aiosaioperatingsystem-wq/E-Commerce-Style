@@ -3,8 +3,9 @@ import { Link } from "wouter";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
-import { products } from "@/data/products";
+import { products as staticProducts } from "@/data/products";
 import { ArrowRight } from "lucide-react";
+import { useListProducts } from "@workspace/api-client-react";
 
 const categories = [
   { name: "Kiyim-kechak", icon: "👕" },
@@ -16,6 +17,11 @@ const categories = [
 ];
 
 export function Home() {
+  const { data: apiProducts } = useListProducts();
+  const displayProducts = apiProducts && apiProducts.length > 0
+    ? apiProducts.map(p => ({ ...p, id: String(p.id), image: p.imageUrl }))
+    : staticProducts;
+
   return (
     <div className="min-h-screen flex flex-col pb-20">
       <Header />
@@ -77,7 +83,7 @@ export function Home() {
               </Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-              {products.slice(0, 10).map((product, i) => (
+              {displayProducts.slice(0, 10).map((product, i) => (
                 <ProductCard key={product.id} product={product} index={i} />
               ))}
             </div>
