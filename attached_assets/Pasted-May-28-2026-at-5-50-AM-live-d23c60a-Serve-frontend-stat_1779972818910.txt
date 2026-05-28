@@ -1,0 +1,44 @@
+May 28, 2026 at 5:50 AM
+live
+d23c60a
+Serve frontend static files and add fallback route Update the build process to include frontend compilation and configure the Express server to serve static frontend files with a fallback to index.html in production. Replit-Commit-Author: Agent Replit-Commit-Session-Id: 6c900410-5984-4af7-aae1-62913a5ecdb7 Replit-Commit-Checkpoint-Type: full_checkpoint Replit-Commit-Event-Id: 72e6ebc8-42c1-4e7a-b89b-d9f9a907d55f Replit-Helium-Checkpoint-Created: true
+
+All logs
+Search
+Search
+
+May 28, 5:49 AM - 5:53 AM
+PDT
+
+
+
+==> Downloading cache...
+==> Cloning from https://github.com/aiosaioperatingsystem-wq/E-Commerce-Style
+==> Checking out commit d23c60a1312f941e995dffc97ce21f583f33eb2b in branch main
+==> Downloaded 90MB in 2s. Extraction took 2s.
+==> Using Node.js version 24.14.1 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'pnpm install --frozen-lockfile; pnpm run build'...
+> workspace@0.0.0 build /opt/render/project/src
+> pnpm run typecheck && pnpm -r --if-present run build
+> workspace@0.0.0 typecheck /opt/render/project/src
+> pnpm run typecheck:libs && pnpm -r --filter "./artifacts/**" --filter "./scripts" --if-present run typecheck
+> workspace@0.0.0 typecheck:libs /opt/render/project/src
+> tsc --build
+==> Uploading build...
+==> Uploaded in 3.5s. Compression took 3.9s
+==> Build successful 🎉
+==> Deploying...
+==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
+==> Running 'cd artifacts/api-server && node --enable-source-maps ./dist/index.mjs'
+{"level":30,"time":1779972713033,"pid":70,"hostname":"srv-d8c2seho3t8c73autc7g-hibernate-84f8dcd449-hg8bs","port":10000,"msg":"Server listening"}
+{"level":30,"time":1779972713335,"pid":70,"hostname":"srv-d8c2seho3t8c73autc7g-hibernate-84f8dcd449-hg8bs","req":{"id":1,"method":"HEAD","url":"/"},"res":{"statusCode":404},"responseTime":89,"msg":"request completed"}
+Error: ENOENT: no such file or directory, stat '/opt/render/project/src/artifacts/api-server/artifacts/uzbek-market/dist/public/index.html'
+==> Your service is live 🎉
+==> 
+==> ///////////////////////////////////////////////////////////
+==> 
+==> Available at your primary URL https://uz-bozor.onrender.com
+==> 
+==> ///////////////////////////////////////////////////////////
+Need better ways to work with logs? Try theRender CLI, Render MCP Server, or set up a log stream integration 

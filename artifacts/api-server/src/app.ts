@@ -34,8 +34,8 @@ app.use("/api", router);
 
 if (process.env.NODE_ENV === "production") {
   const frontendDist = path.resolve(
-    process.cwd(),
-    "artifacts/uzbek-market/dist/public",
+    import.meta.dirname,
+    "../../uzbek-market/dist/public",
   );
   app.use(express.static(frontendDist));
   app.use((_req, res) => {
